@@ -1,0 +1,372 @@
+name: cert-manager
+description: ""
+email: ""
+company: ""
+location: ""
+billing_email: cert-manager-maintainers@googlegroups.com
+
+has_organization_projects: true
+has_repository_projects: true
+default_repository_permission: read
+members_can_create_repositories: false
+
+admins:
+- caniszczyk
+- cert-manager-bot
+- inteon
+- jakexks
+- JoshVanL
+- maelvls
+- munnerz
+- SgtCoDFish
+- ThatsMrTalbot
+- thelinuxfoundation
+- wallrj
+
+members:
+- amibhi
+- anbaig
+- ARichman555
+- aveega
+- bmsiegel
+- charlieegan3
+- davidnoyes
+- dcamzn
+- divyansh-gupta
+- erikgb
+- euank
+- FlorianLiebhart
+- Hamidhasan
+- hawksight
+- heckj
+- hmphome
+- irbekrm
+- james-w
+- jniebuhr
+- jsoref
+- kollabpr
+- kragniz
+- KyleBS
+- meghanayendamuri
+- meyskens
+- mikebryant
+- Nalum
+- ndbhat
+- shankara-n
+- simplyzee
+- SpectralHiss
+- tanujd11
+- vdesjardins
+
+teams:
+  milestone-maintainers:
+    description: cert-manager milestone maintainers
+    maintainers:
+    - inteon
+    - jakexks
+    - JoshVanL
+    - maelvls
+    - munnerz
+    - SgtCoDFish
+    - ThatsMrTalbot
+    - wallrj
+    privacy: closed
+
+  trust-manager-maintainers:
+    members:
+    - erikgb
+    privacy: closed
+    repos:
+      trust-manager: maintain
+
+  approver-policy-maintainers:
+    members:
+    - erikgb
+    privacy: closed
+    repos:
+      approver-policy: maintain
+
+  aws-privateca-issuer-admins:
+    members:
+    - dcamzn
+    - jniebuhr
+    privacy: closed
+    repos:
+      aws-privateca-issuer: admin
+
+  aws-privateca-issuer-maintainers:
+    members:
+    - amibhi
+    - anbaig
+    - ARichman555
+    - aveega
+    - bmsiegel
+    - divyansh-gupta
+    - Hamidhasan
+    - hmphome
+    - kollabpr
+    - KyleBS
+    - meghanayendamuri
+    - ndbhat
+    - shankara-n
+    privacy: closed
+    repos:
+      aws-privateca-issuer: maintain
+
+repos:
+  cert-manager:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Automatically provision and manage TLS certificates in Kubernetes
+    has_projects: true
+    homepage: https://cert-manager.io
+  approver-policy:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: approver-policy is a cert-manager approver that allows users to define policies that restrict what certificates can be requested.
+    has_projects: true
+    homepage: https://cert-manager.io/docs/policy/approval/approver-policy/
+  cmctl:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: '`cmctl` or `kubectl cert-manager` is the command line utility that makes cert-manager''ing easier.'
+    has_projects: true
+    has_wiki: false
+    homepage: https://cert-manager.io/docs/reference/cmctl/
+  csi-driver:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: A Kubernetes CSI plugin to automatically mount signed certificates to Pods using ephemeral volumes
+    has_projects: true
+    homepage: https://cert-manager.io/docs/usage/csi-driver/
+  csi-driver-spiffe:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: A Kubernetes CSI plugin to automatically mount SPIFFE certificates to Pods using ephemeral volumes
+    has_projects: true
+    homepage: https://cert-manager.io/docs/usage/csi-driver-spiffe/
+  csi-lib:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: A library for building CSI drivers that request certificates from cert-manager
+    has_projects: true
+  example-approver-policy-plugin:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Example approver policy plugin https://cert-manager.io/docs/projects/approver-policy/#plugins
+    has_projects: true
+  issuer-lib:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: issuer-lib is the Go library for building cert-manager issuers.
+    has_projects: false
+    has_wiki: false
+  istio-csr:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: istio-csr is an agent that allows for Istio workload and control plane components to be secured using cert-manager.
+    has_projects: true
+    homepage: https://cert-manager.io/docs/usage/istio-csr/
+  openshift-routes:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: OpenShift Route support for cert-manager
+    has_projects: true
+  trust-manager:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: trust-manager is an operator for distributing trust bundles across a Kubernetes cluster.
+    has_projects: true
+    homepage: https://cert-manager.io/docs/projects/trust-manager/
+  webhook-example:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: A cert-manager sample repository for creating an ACME DNS01 solver webhook
+    has_projects: true
+  webhook-lib:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: 'Experimental: a Golang library for creating conversion & admission webhooks'
+    has_projects: true
+  website:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Source code for the cert-manager.io website, including project documentation
+    has_projects: true
+    homepage: https://cert-manager.io
+  sample-external-issuer:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: A sample external Issuer for cert-manager
+    has_projects: true
+
+  aws-privateca-issuer:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Addon for cert-manager that issues certificates using AWS ACM PCA.
+    has_projects: true
+    has_wiki: false
+
+  base-images:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Apko build automation for building base images used by cert-manager projects.
+    has_projects: true
+    has_wiki: false
+  boilersuite:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Boilerplate checker entirely in Go
+    has_projects: true
+  cert-manager-olm:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Definitions for the cert-manager operator published via Red Hat's Operator Lifecycle Manager (OLM)
+    has_projects: true
+  helm-tool:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: helm-tool is an internal cert-manager utility (can be broken or removed) which generates Helm docs, schema files and performs linting.
+    has_projects: true
+  klone:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Clone git sub-directories in your project.
+    has_projects: true
+    has_wiki: false
+  makefile-modules:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Reusable Makefile modules that can be kloned into your project
+    has_projects: true
+  release:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Releasing tooling for the cert-manager project
+    has_projects: true
+  print-your-cert:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Get your certificate printed at the cert-manager booth at KubeCon EU 2024 in Paris!
+    has_projects: true
+    homepage: https://cert-manager.github.io/print-your-cert/
+
+  community:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: Contribution and Collaboration Guidelines for the cert-manager Project
+    has_projects: true
+    homepage: https://cert-manager.io
+  infrastructure:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: main
+    description: cert-manager infrastructure
+    has_projects: false
+    has_wiki: false
+  org:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Configuration for the cert-manager GitHub org
+    has_projects: true
+  testing:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Repository containing cert-manager testing infrastructure configuration
+    has_projects: true
+  testing-addons:
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Tooling to deploy cert-manager with external dependencies for local testing
+    has_projects: true
+
+  signer-ca:
+    archived: true
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Experimental 'local CA' based signer for Kubernetes 1.18 CSR API
+    has_projects: false
+    has_wiki: false
+  signer-venafi:
+    archived: true
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Experimental Venafi based signer for Kubernetes 1.18 CSR API https://github.com/kubernetes/enhancements/blob/master/keps/sig-auth/20190607-certificates-api.md#signers
+    has_projects: true
+  crypto:
+    archived: true
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    default_branch: cherry_pick_altcert
+    description: 'temporary fork to add support for ACME alternative certificate chains '
+    has_issues: false
+    has_projects: true
+    has_wiki: false
+    homepage: https://golang.org/x/crypto
+  goversion:
+    archived: true
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: Print version used to build Go executables
+    has_issues: false
+    has_projects: true
+  webhook-operator:
+    archived: true
+    allow_merge_commit: false
+    allow_rebase_merge: false
+    allow_squash_merge: false
+    description: 'WIP: An extremely experimental operator for managing TLS for Kubernetes webhooks'
+    has_projects: true

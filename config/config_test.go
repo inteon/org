@@ -1,0 +1,270 @@
+// +skip_license_check
+/*
+Copyright 2018 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package config
+
+import (
+	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"testing"
+
+	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/prow/pkg/config/org"
+	"sigs.k8s.io/prow/pkg/github"
+
+	"github.com/ghodss/yaml"
+)
+
+var cfg org.FullConfig
+
+func TestMain(m *testing.M) {
+	configPath := os.Getenv("MERGED_CONFIG")
+	if configPath == "" {
+		fmt.Println("MERGED_CONFIG env variable must be set")
+		os.Exit(1)
+	}
+
+	raw, err := os.ReadFile(configPath)
+	if err != nil {
+		fmt.Printf("cannot read generated config.yaml from %s: %v\n", configPath, err)
+		os.Exit(1)
+	}
+
+	if err := yaml.Unmarshal(raw, &cfg); err != nil {
+		fmt.Printf("cannot unmarshal generated config.yaml from %s: %v\n", configPath, err)
+		os.Exit(1)
+	}
+
+	os.Exit(m.Run())
+}
+
+type owners struct {
+	Reviewers []string `json:"reviewers,omitempty"`
+	Approvers []string `json:"approvers"`
+}
+
+func readInto(path string, i interface{}) error {
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read: %v", err)
+	}
+	if err := yaml.Unmarshal(buf, i); err != nil {
+		return fmt.Errorf("unmarshal: %v", err)
+	}
+	return nil
+}
+
+func loadOwners(dir string) (*owners, error) {
+	var own owners
+	if err := readInto(dir+"/OWNERS", &own); err != nil {
+		return nil, err
+	}
+	return &own, nil
+}
+
+func loadOrg(dir string) (*org.Config, error) {
+	var cfg org.Config
+	if err := readInto(dir+"/org.yaml", &cfg); err != nil {
+		return nil, err
+	}
+	return &cfg, nil
+}
+
+func testDuplicates(list []string) error {
+	found := sets.Set[string]{}
+	dups := sets.Set[string]{}
+	for _, i := range list {
+		if found.Has(i) {
+			dups.Insert(i)
+		}
+		found.Insert(i)
+	}
+	if n := len(dups); n > 0 {
+		return fmt.Errorf("%d duplicate names: %s", n, strings.Join(dups.UnsortedList(), ", "))
+	}
+	return nil
+}
+
+func isSorted(list []string) bool {
+	items := make([]string, len(list))
+	for _, l := range list {
+		items = append(items, strings.ToLower(l))
+	}
+
+	return sort.StringsAreSorted(items)
+}
+
+func normalize(s []string) []string {
+	var out []string
+	for _, v := range s {
+		out = append(out, github.NormLogin(v))
+	}
+	return out
+}
+
+// testTeamMembers ensures that a user is not a maintainer and member at the same time,
+// there are no duplicate names in the list and all users are org members.
+func testTeamMembers(teams map[string]org.Team, admins sets.Set[string], orgMembers sets.Set[string], orgName string) []error {
+	var errs []error
+	for teamName, team := range teams {
+		teamMaintainers := sets.New(normalize(team.Maintainers)...)
+		teamMembers := sets.New(normalize(team.Members)...)
+
+		// ensure all teams have privacy as closed
+		if team.Privacy == nil || (team.Privacy != nil && *team.Privacy != org.Closed) {
+			errs = append(errs, fmt.Errorf("The team %s in org %s doesn't have the `privacy: closed` field", teamName, orgName))
+		}
+
+		// check for non-admins in maintainers list
+		if nonAdminMaintainers := teamMaintainers.Difference(admins); len(nonAdminMaintainers) > 0 {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has non-admins listed as maintainers; these users should be in the members list instead: %s", teamName, orgName, strings.Join(nonAdminMaintainers.UnsortedList(), ",")))
+		}
+
+		// check for users in both maintainers and members
+		if both := teamMaintainers.Intersection(teamMembers); len(both) > 0 {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has users in both maintainer admin and member roles: %s", teamName, orgName, strings.Join(both.UnsortedList(), ", ")))
+		}
+
+		// check for duplicates
+		if err := testDuplicates(normalize(team.Maintainers)); err != nil {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has duplicate maintainers: %v", teamName, orgName, err))
+		}
+		if err := testDuplicates(normalize(team.Members)); err != nil {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has duplicate members: %v", teamMembers, orgName, err))
+		}
+
+		// check if all are org members
+		if missing := teamMembers.Difference(orgMembers); len(missing) > 0 {
+			errs = append(errs, fmt.Errorf("The following members of team %s are not %s org members: %s", teamName, orgName, strings.Join(missing.UnsortedList(), ", ")))
+		}
+
+		// check if admins are a regular member of team
+		if adminTeamMembers := teamMembers.Intersection(admins); len(adminTeamMembers) > 0 {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has org admins listed as members; these users should be in the maintainers list instead, and cannot be on the members list: %s", teamName, orgName, strings.Join(adminTeamMembers.UnsortedList(), ", ")))
+		}
+
+		// check if lists are sorted
+		if !isSorted(team.Maintainers) {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has an unsorted list of maintainers", teamName, orgName))
+		}
+		if !isSorted(team.Members) {
+			errs = append(errs, fmt.Errorf("The team %s in org %s has an unsorted list of members", teamName, orgName))
+		}
+
+		if team.Children != nil {
+			errs = append(errs, testTeamMembers(team.Children, admins, orgMembers, orgName)...)
+		}
+	}
+	return errs
+}
+
+func testOrg(targetDir string, t *testing.T) {
+	cfg, err := loadOrg(targetDir)
+	if err != nil {
+		t.Fatalf("failed to load org.yaml: %v", err)
+	}
+	own, err := loadOwners(targetDir)
+	if err != nil {
+		t.Fatalf("failed to load OWNERS: %v", err)
+	}
+
+	members := sets.New(normalize(cfg.Members)...)
+	admins := sets.New(normalize(cfg.Admins)...)
+	allOrgMembers := members.Union(admins)
+
+	reviewers := sets.New(normalize(own.Reviewers)...)
+	approvers := sets.New(normalize(own.Approvers)...)
+
+	if n := len(approvers); n < 5 {
+		t.Errorf("Require at least 5 approvers, found %d: %s", n, strings.Join(approvers.UnsortedList(), ", "))
+	}
+
+	if missing := reviewers.Difference(allOrgMembers); len(missing) > 0 {
+		t.Errorf("The following reviewers must be members: %s", strings.Join(missing.UnsortedList(), ", "))
+	}
+	if missing := approvers.Difference(allOrgMembers); len(missing) > 0 {
+		t.Errorf("The following approvers must be members: %s", strings.Join(missing.UnsortedList(), ", "))
+	}
+	if err := testDuplicates(normalize(own.Reviewers)); err != nil {
+		t.Errorf("duplicate reviewers: %v", err)
+	}
+	if err := testDuplicates(normalize(own.Approvers)); err != nil {
+		t.Errorf("duplicate approvers: %v", err)
+	}
+}
+
+func TestAllOrgs(t *testing.T) {
+	f, err := os.Open(".")
+	if err != nil {
+		t.Fatalf("cannot read config: %v", err)
+	}
+	infos, err := f.Readdir(0)
+	if err != nil {
+		t.Fatalf("cannot read subdirs: %v", err)
+	}
+	for _, i := range infos {
+		if !i.IsDir() {
+			continue
+		}
+		n := i.Name()
+		if strings.HasPrefix(n, "linux_") || strings.HasPrefix(n, "darwin_") {
+			continue
+		}
+		t.Run(n, func(t *testing.T) {
+			if _, ok := cfg.Orgs[n]; !ok {
+				t.Errorf("%s missing from generated config.yaml", n)
+			}
+			testOrg(n, t)
+		})
+	}
+
+	for _, org := range cfg.Orgs {
+		members := sets.New(normalize(org.Members)...)
+		admins := sets.New(normalize(org.Admins)...)
+		allOrgMembers := members.Union(admins)
+
+		if both := admins.Intersection(members); len(both) > 0 {
+			t.Errorf("users in both org admin and member roles for org '%s': %s", *org.Name, strings.Join(both.UnsortedList(), ", "))
+		}
+
+		if !admins.Has("cert-manager-bot") {
+			t.Errorf("cert-manager-bot must be an admin")
+		}
+
+		if err := testDuplicates(normalize(org.Admins)); err != nil {
+			t.Errorf("duplicate admins: %v", err)
+		}
+		if err := testDuplicates(normalize(org.Members)); err != nil {
+			t.Errorf("duplicate members: %v", err)
+		}
+		if !isSorted(org.Admins) {
+			t.Errorf("admins for %s org are unsorted", *org.Name)
+		}
+		if !isSorted(org.Members) {
+			t.Errorf("members for %s org are unsorted", *org.Name)
+		}
+
+		if errs := testTeamMembers(org.Teams, admins, allOrgMembers, *org.Name); errs != nil {
+			for _, err := range errs {
+				t.Error(err)
+			}
+		}
+
+	}
+}

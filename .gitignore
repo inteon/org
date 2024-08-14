@@ -1,0 +1,9 @@
+.vscode/
+*.swp
+*.pyc
+*~
+/bazel-*
+.DS_Store
+.idea/
+_output/
+token
